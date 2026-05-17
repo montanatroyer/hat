@@ -439,13 +439,14 @@
     setTimeout(() => {
       clearInterval(interval);
       papersEl.classList.remove("shuffling");
-      // Clear inline styles and restore visual order from data
-      renderPapers();
       shuffling = false;
       pickBtn.disabled = false;
 
       const idx = Math.floor(Math.random() * papers.length);
       const choice = papers[idx];
+      papers.splice(idx, 1);
+      renderPapers();
+
       const div = document.createElement("div");
       div.className = "drawn";
       div.textContent = choice;
