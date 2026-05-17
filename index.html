@@ -6,19 +6,22 @@
 <title>Hat</title>
 <style>
   :root {
-    --bg: #f5f1e8;
-    --ink: #2b2118;
-    --accent: #8b5a2b;
-    --accent-dark: #5e3a1a;
+    --ink: #ffffff;
+    --muted: #ffffff;
+    --accent: #6a71f0;
+    --accent-dark: #7c83ff;
+    --panel: rgba(0, 0, 0, 0.45);
     --paper: #fffbf2;
-    --shadow: rgba(60, 40, 20, 0.18);
-    --danger: #b04545;
+    --border: rgba(255, 255, 255, 0.12);
+    --shadow: rgba(0, 0, 0, 0.35);
+    --danger: #ef5350;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: Georgia, "Times New Roman", serif;
-    background: var(--bg);
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background-attachment: fixed;
     color: var(--ink);
     min-height: 100vh;
     padding: 24px;
@@ -38,14 +41,16 @@
   }
   header p {
     margin: 4px 0 0;
-    color: #6b5a48;
+    color: var(--muted);
     font-style: italic;
   }
+  header h1 { color: #fff; }
   .panel {
-    background: var(--paper);
+    background: var(--panel);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 18px;
-    box-shadow: 0 2px 10px var(--shadow);
+    box-shadow: 0 4px 20px var(--shadow);
     margin-bottom: 18px;
   }
   .row {
@@ -56,11 +61,18 @@
   input[type="text"] {
     flex: 1;
     padding: 10px 12px;
-    border: 1px solid #cdb89a;
+    border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 1rem;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
     font-family: inherit;
+  }
+  input[type="text"]::placeholder { color: rgba(255, 255, 255, 0.75); }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.12);
   }
   button {
     padding: 10px 16px;
@@ -74,7 +86,7 @@
     transition: background 0.15s;
   }
   button:hover { background: var(--accent-dark); }
-  button:disabled { background: #b9a584; cursor: not-allowed; }
+  button:disabled { background: rgba(255, 255, 255, 0.15); cursor: not-allowed; }
   button.secondary {
     background: transparent;
     color: var(--accent-dark);
@@ -102,12 +114,13 @@
     min-height: 40px;
   }
   .papers li {
-    background: #fffefa;
+    background: var(--paper);
+    color: #2b2118;
     border: 1px solid #ddc9a8;
     padding: 6px 28px 6px 12px;
     border-radius: 4px;
     position: relative;
-    box-shadow: 1px 1px 3px var(--shadow);
+    box-shadow: 1px 2px 6px var(--shadow);
     transform: rotate(-1deg);
   }
   .papers li:nth-child(even) { transform: rotate(1.5deg); }
@@ -125,8 +138,9 @@
     padding: 0 4px;
   }
   .papers li .x:hover { color: var(--danger); background: none; }
-  .empty {
-    color: #998877;
+  .empty,
+  .papers li.empty {
+    color: #ffffff;
     font-style: italic;
     padding: 8px 0;
   }
@@ -149,22 +163,29 @@
   }
   .result .drawn {
     background: var(--paper);
+    color: #2b2118;
     border: 2px dashed var(--accent);
     padding: 18px 28px;
     font-size: 1.5rem;
     border-radius: 6px;
     transform: rotate(-2deg);
-    box-shadow: 2px 4px 10px var(--shadow);
+    box-shadow: 2px 4px 14px var(--shadow);
     animation: drop 0.4s ease-out;
   }
   @keyframes drop {
     from { transform: translateY(-30px) rotate(6deg); opacity: 0; }
     to   { transform: translateY(0) rotate(-2deg); opacity: 1; }
   }
+  .papers.shuffling { pointer-events: none; }
+  .papers.shuffling li {
+    transition: transform 0.28s cubic-bezier(0.5, 0.1, 0.5, 1);
+    will-change: transform;
+  }
+  .papers.shuffling li .x { display: none; }
   h2 {
     margin: 0 0 12px 0;
     font-size: 1.2rem;
-    color: var(--accent-dark);
+    color: #fff;
   }
   .hat-list {
     list-style: none;
@@ -176,23 +197,24 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 12px;
-    border-bottom: 1px solid #e6d7bd;
+    border-bottom: 1px solid var(--border);
   }
   .hat-list li:last-child { border-bottom: none; }
   .hat-list .name {
     font-weight: bold;
     cursor: pointer;
     flex: 1;
+    color: var(--ink);
   }
-  .hat-list .name:hover { color: var(--accent); }
+  .hat-list .name:hover { color: var(--accent-dark); }
   .hat-list .count {
-    color: #8a7860;
+    color: var(--muted);
     font-size: 0.85rem;
     margin-right: 12px;
   }
   .current-name {
     font-size: 1rem;
-    color: #6b5a48;
+    color: var(--muted);
     font-style: italic;
     margin-bottom: 8px;
   }
@@ -211,7 +233,7 @@
   </header>
 
   <div class="panel">
-    <div class="current-name" id="currentName">Untitled hat</div>
+    <div class="current-name" id="currentName">Add your papers below, then hit Pick to draw one at random.</div>
     <div class="row">
       <input type="text" id="paperInput" placeholder="Type something and press Enter…" autocomplete="off" />
       <button id="addBtn">Add</button>
@@ -345,7 +367,9 @@
   }
 
   function updateCurrentName() {
-    currentNameEl.textContent = currentHatName ? `Editing: ${currentHatName}` : "Untitled hat";
+    currentNameEl.textContent = currentHatName
+      ? `Editing: ${currentHatName}`
+      : "Add your papers below, then hit Pick to draw one at random.";
     hatNameInput.value = currentHatName || "";
   }
 
@@ -368,20 +392,66 @@
     renderPapers();
   }
 
+  let shuffling = false;
+  function shuffleOnce() {
+    const lis = Array.from(papersEl.querySelectorAll("li"));
+    if (lis.length < 2) return;
+    const oldRects = new Map(lis.map(li => [li, li.getBoundingClientRect()]));
+    // Reorder DOM
+    const shuffled = lis.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    shuffled.forEach(li => papersEl.appendChild(li));
+    // FLIP: jump back to old positions instantly, then animate to new
+    lis.forEach(li => {
+      const newRect = li.getBoundingClientRect();
+      const oldRect = oldRects.get(li);
+      const dx = oldRect.left - newRect.left;
+      const dy = oldRect.top - newRect.top;
+      li.style.transition = "none";
+      const startRot = (Math.random() - 0.5) * 30;
+      li.style.transform = `translate(${dx}px, ${dy}px) rotate(${startRot}deg)`;
+    });
+    void papersEl.offsetWidth;
+    lis.forEach(li => {
+      li.style.transition = "";
+      const endRot = (Math.random() - 0.5) * 12;
+      li.style.transform = `rotate(${endRot}deg)`;
+    });
+  }
+
   function pick() {
     if (papers.length === 0) {
       resultEl.innerHTML = '<div class="empty">Add some papers first!</div>';
       return;
     }
-    const idx = Math.floor(Math.random() * papers.length);
-    const choice = papers[idx];
+    if (shuffling) return;
+    shuffling = true;
+    pickBtn.disabled = true;
     resultEl.innerHTML = "";
-    const div = document.createElement("div");
-    div.className = "drawn";
-    div.textContent = choice;
-    // restart animation
-    void div.offsetWidth;
-    resultEl.appendChild(div);
+    papersEl.classList.add("shuffling");
+
+    shuffleOnce();
+    const interval = setInterval(shuffleOnce, 300);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      papersEl.classList.remove("shuffling");
+      // Clear inline styles and restore visual order from data
+      renderPapers();
+      shuffling = false;
+      pickBtn.disabled = false;
+
+      const idx = Math.floor(Math.random() * papers.length);
+      const choice = papers[idx];
+      const div = document.createElement("div");
+      div.className = "drawn";
+      div.textContent = choice;
+      void div.offsetWidth;
+      resultEl.appendChild(div);
+    }, 1100);
   }
 
   function saveCurrent() {
