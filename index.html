@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hat</title>
+<style>
+  :root {
+    --bg: #f5f1e8;
+    --ink: #2b2118;
+    --accent: #8b5a2b;
+    --accent-dark: #5e3a1a;
+    --paper: #fffbf2;
+    --shadow: rgba(60, 40, 20, 0.18);
+    --danger: #b04545;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  header h1 {
+    font-size: 2.4rem;
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+  header p {
+    margin: 4px 0 0;
+    color: #6b5a48;
+    font-style: italic;
+  }
+  .panel {
+    background: var(--paper);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 2px 10px var(--shadow);
+    margin-bottom: 18px;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  input[type="text"] {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #cdb89a;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    font-family: inherit;
+  }
+  button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  button:hover { background: var(--accent-dark); }
+  button:disabled { background: #b9a584; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    color: var(--accent-dark);
+    border: 1px solid var(--accent);
+  }
+  button.secondary:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+  button.danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+  button.danger:hover { background: var(--danger); color: #fff; }
+  .papers {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+  }
+  .papers li {
+    background: #fffefa;
+    border: 1px solid #ddc9a8;
+    padding: 6px 28px 6px 12px;
+    border-radius: 4px;
+    position: relative;
+    box-shadow: 1px 1px 3px var(--shadow);
+    transform: rotate(-1deg);
+  }
+  .papers li:nth-child(even) { transform: rotate(1.5deg); }
+  .papers li:nth-child(3n) { transform: rotate(-0.5deg); }
+  .papers li .x {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #a08868;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 4px;
+  }
+  .papers li .x:hover { color: var(--danger); background: none; }
+  .empty {
+    color: #998877;
+    font-style: italic;
+    padding: 8px 0;
+  }
+  .pick-area {
+    text-align: center;
+    padding: 16px 0;
+  }
+  .pick-btn {
+    font-size: 1.4rem;
+    padding: 14px 40px;
+    background: var(--accent-dark);
+    border-radius: 999px;
+  }
+  .result {
+    margin-top: 18px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .result .drawn {
+    background: var(--paper);
+    border: 2px dashed var(--accent);
+    padding: 18px 28px;
+    font-size: 1.5rem;
+    border-radius: 6px;
+    transform: rotate(-2deg);
+    box-shadow: 2px 4px 10px var(--shadow);
+    animation: drop 0.4s ease-out;
+  }
+  @keyframes drop {
+    from { transform: translateY(-30px) rotate(6deg); opacity: 0; }
+    to   { transform: translateY(0) rotate(-2deg); opacity: 1; }
+  }
+  h2 {
+    margin: 0 0 12px 0;
+    font-size: 1.2rem;
+    color: var(--accent-dark);
+  }
+  .hat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .hat-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e6d7bd;
+  }
+  .hat-list li:last-child { border-bottom: none; }
+  .hat-list .name {
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+  }
+  .hat-list .name:hover { color: var(--accent); }
+  .hat-list .count {
+    color: #8a7860;
+    font-size: 0.85rem;
+    margin-right: 12px;
+  }
+  .current-name {
+    font-size: 1rem;
+    color: #6b5a48;
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  .save-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🎩 Hat</h1>
+    <p>Drop your papers in. Pick one at random.</p>
+  </header>
+
+  <div class="panel">
+    <div class="current-name" id="currentName">Untitled hat</div>
+    <div class="row">
+      <input type="text" id="paperInput" placeholder="Type something and press Enter…" autocomplete="off" />
+      <button id="addBtn">Add</button>
+    </div>
+    <ul class="papers" id="papers"></ul>
+    <div class="pick-area">
+      <button class="pick-btn" id="pickBtn">Pick</button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Save this hat</h2>
+    <div class="save-row">
+      <input type="text" id="hatNameInput" placeholder="e.g. My Favorite Restaurants Hat" />
+      <button id="saveBtn">Save</button>
+      <button class="secondary" id="newBtn">New</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Saved hats</h2>
+    <ul class="hat-list" id="hatList"></ul>
+    <div class="empty" id="noHats">No saved hats yet.</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = "hat.savedHats.v1";
+
+  let papers = [];
+  let currentHatName = null;
+
+  const paperInput = document.getElementById("paperInput");
+  const addBtn = document.getElementById("addBtn");
+  const papersEl = document.getElementById("papers");
+  const pickBtn = document.getElementById("pickBtn");
+  const resultEl = document.getElementById("result");
+  const hatNameInput = document.getElementById("hatNameInput");
+  const saveBtn = document.getElementById("saveBtn");
+  const newBtn = document.getElementById("newBtn");
+  const hatListEl = document.getElementById("hatList");
+  const noHatsEl = document.getElementById("noHats");
+  const currentNameEl = document.getElementById("currentName");
+
+  function loadHats() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveHats(hats) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(hats));
+  }
+
+  function renderPapers() {
+    papersEl.innerHTML = "";
+    if (papers.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.style.background = "transparent";
+      li.style.border = "none";
+      li.style.transform = "none";
+      li.style.boxShadow = "none";
+      li.textContent = "The hat is empty.";
+      papersEl.appendChild(li);
+      return;
+    }
+    papers.forEach((p, i) => {
+      const li = document.createElement("li");
+      li.textContent = p;
+      const x = document.createElement("button");
+      x.className = "x";
+      x.textContent = "×";
+      x.title = "Remove";
+      x.addEventListener("click", () => {
+        papers.splice(i, 1);
+        renderPapers();
+      });
+      li.appendChild(x);
+      papersEl.appendChild(li);
+    });
+  }
+
+  function renderHatList() {
+    const hats = loadHats();
+    const names = Object.keys(hats).sort();
+    hatListEl.innerHTML = "";
+    if (names.length === 0) {
+      noHatsEl.style.display = "block";
+      return;
+    }
+    noHatsEl.style.display = "none";
+    names.forEach((name) => {
+      const li = document.createElement("li");
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.textContent = name;
+      nameSpan.title = "Click to open";
+      nameSpan.addEventListener("click", () => openHat(name));
+
+      const count = document.createElement("span");
+      count.className = "count";
+      count.textContent = `${hats[name].length} item${hats[name].length === 1 ? "" : "s"}`;
+
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "Delete";
+      del.addEventListener("click", () => {
+        if (confirm(`Delete "${name}"?`)) {
+          const h = loadHats();
+          delete h[name];
+          saveHats(h);
+          if (currentHatName === name) {
+            currentHatName = null;
+            updateCurrentName();
+          }
+          renderHatList();
+        }
+      });
+
+      li.appendChild(nameSpan);
+      li.appendChild(count);
+      li.appendChild(del);
+      hatListEl.appendChild(li);
+    });
+  }
+
+  function updateCurrentName() {
+    currentNameEl.textContent = currentHatName ? `Editing: ${currentHatName}` : "Untitled hat";
+    hatNameInput.value = currentHatName || "";
+  }
+
+  function openHat(name) {
+    const hats = loadHats();
+    if (!hats[name]) return;
+    papers = hats[name].slice();
+    currentHatName = name;
+    resultEl.innerHTML = "";
+    updateCurrentName();
+    renderPapers();
+  }
+
+  function addPaper() {
+    const val = paperInput.value.trim();
+    if (!val) return;
+    papers.push(val);
+    paperInput.value = "";
+    paperInput.focus();
+    renderPapers();
+  }
+
+  function pick() {
+    if (papers.length === 0) {
+      resultEl.innerHTML = '<div class="empty">Add some papers first!</div>';
+      return;
+    }
+    const idx = Math.floor(Math.random() * papers.length);
+    const choice = papers[idx];
+    resultEl.innerHTML = "";
+    const div = document.createElement("div");
+    div.className = "drawn";
+    div.textContent = choice;
+    // restart animation
+    void div.offsetWidth;
+    resultEl.appendChild(div);
+  }
+
+  function saveCurrent() {
+    const name = hatNameInput.value.trim();
+    if (!name) {
+      alert("Give your hat a name first.");
+      hatNameInput.focus();
+      return;
+    }
+    if (papers.length === 0) {
+      alert("Add at least one paper before saving.");
+      return;
+    }
+    const hats = loadHats();
+    const renaming = currentHatName && currentHatName !== name;
+    if (renaming) {
+      delete hats[currentHatName];
+    }
+    hats[name] = papers.slice();
+    saveHats(hats);
+    currentHatName = name;
+    updateCurrentName();
+    renderHatList();
+  }
+
+  function newHat() {
+    if (papers.length > 0 && !confirm("Start a new empty hat? Unsaved papers will be cleared.")) {
+      return;
+    }
+    papers = [];
+    currentHatName = null;
+    resultEl.innerHTML = "";
+    updateCurrentName();
+    renderPapers();
+  }
+
+  addBtn.addEventListener("click", addPaper);
+  paperInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addPaper(); }
+  });
+  pickBtn.addEventListener("click", pick);
+  saveBtn.addEventListener("click", saveCurrent);
+  newBtn.addEventListener("click", newHat);
+  hatNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); saveCurrent(); }
+  });
+
+  renderPapers();
+  renderHatList();
+  updateCurrentName();
+})();
+</script>
+</body>
+</html>
