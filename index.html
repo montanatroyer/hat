@@ -30,6 +30,17 @@
     max-width: 720px;
     margin: 0 auto;
   }
+  #homeLink {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    color: var(--accent-dark);
+    text-decoration: none;
+    font-size: 0.85rem;
+    opacity: 0.85;
+    z-index: 100;
+  }
+  #homeLink:hover { opacity: 1; text-decoration: underline; }
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -289,6 +300,7 @@
 </style>
 </head>
 <body>
+<a id="homeLink" href="https://idkwhatdoyouwanna.vercel.app" target="_blank" rel="noopener">← idkwhatdoyouwanna</a>
 <div class="app">
   <div class="panel">
     <div class="current-name" id="currentName">Add your papers below, then hit Pick to draw one at random.</div>
