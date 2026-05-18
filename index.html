@@ -605,9 +605,10 @@
       return b;
     }
 
-    actions.appendChild(btn("Add to existing hat (dedup)", "add"));
-    actions.appendChild(btn("Replace the hat", "replace", "secondary"));
-    actions.appendChild(btn("Save as a new hat", "new", "secondary"));
+    const targetNameTitle = targetName.replace(/\b\w/g, c => c.toUpperCase());
+    actions.appendChild(btn(`Add To Existing ${targetNameTitle} Hat`, "add"));
+    actions.appendChild(btn(`Replace Existing ${targetNameTitle} Hat With Just The New Items`, "replace", "secondary"));
+    actions.appendChild(btn("Save These As A Brand New Hat", "new", "secondary"));
 
     modal.appendChild(actions);
     backdrop.appendChild(modal);
