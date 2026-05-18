@@ -187,13 +187,6 @@
     font-size: 1.2rem;
     color: #fff;
   }
-  .saved-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .saved-header h2 { margin: 0; }
   .hat-list {
     list-style: none;
     padding: 0;
@@ -340,10 +333,7 @@
   </div>
 
   <div class="panel">
-    <div class="saved-header">
-      <h2>Saved hats</h2>
-      <button class="danger" id="deleteAllBtn" style="display:none;">Delete All</button>
-    </div>
+    <h2>Saved hats</h2>
     <ul class="hat-list" id="hatList"></ul>
     <div class="empty" id="noHats">No saved hats yet.</div>
   </div>
@@ -370,7 +360,6 @@
   const hatListEl = document.getElementById("hatList");
   const noHatsEl = document.getElementById("noHats");
   const currentNameEl = document.getElementById("currentName");
-  const deleteAllBtn = document.getElementById("deleteAllBtn");
 
   function loadHats() {
     try {
@@ -420,11 +409,9 @@
     hatListEl.innerHTML = "";
     if (names.length === 0) {
       noHatsEl.style.display = "block";
-      deleteAllBtn.style.display = "none";
       return;
     }
     noHatsEl.style.display = "none";
-    deleteAllBtn.style.display = "";
     names.forEach((name) => {
       const li = document.createElement("li");
       const nameSpan = document.createElement("span");
@@ -599,16 +586,6 @@
   newBtn.addEventListener("click", newHat);
   hatNameInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); saveCurrent(); }
-  });
-  deleteAllBtn.addEventListener("click", () => {
-    const hats = loadHats();
-    const count = Object.keys(hats).length;
-    if (count === 0) return;
-    if (!confirm(`Delete all ${count} saved hat${count === 1 ? "" : "s"}? This cannot be undone.`)) return;
-    saveHats({});
-    currentHatName = null;
-    updateCurrentName();
-    renderHatList();
   });
 
   function decodePayload(encoded) {
