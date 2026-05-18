@@ -746,7 +746,7 @@
 
   function buildShareUrl(name, items) {
     const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ name, items }))));
-    return `${location.origin}${location.pathname}?share=${payload}`;
+    return `${location.origin}/api/s?share=${payload}`;
   }
 
   function copyShareUrl(url) {
