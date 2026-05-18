@@ -45,6 +45,15 @@
     font-style: italic;
   }
   header h1 { color: #fff; }
+  header .home-link {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: var(--accent-dark);
+    text-decoration: none;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  header .home-link:hover { opacity: 1; text-decoration: underline; }
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -306,6 +315,7 @@
 <body>
 <div class="app">
   <header>
+    <a class="home-link" href="https://idkwhatdoyouwanna.vercel.app">← idkwhatdoyouwanna</a>
     <h1>🎩 Hat</h1>
     <p>Drop your papers in. Pick one at random.</p>
   </header>
