@@ -606,7 +606,7 @@
     }
 
     const targetNameTitle = targetName.replace(/\b\w/g, c => c.toUpperCase());
-    actions.appendChild(btn(`Add To Existing ${targetNameTitle} Hat`, "add"));
+    actions.appendChild(btn(`Add To Existing ${targetNameTitle} Hat`, "add", "secondary"));
     actions.appendChild(btn(`Replace Existing ${targetNameTitle} Hat With Just The New Items`, "replace", "secondary"));
     actions.appendChild(btn("Save These As A Brand New Hat", "new", "secondary"));
 
@@ -615,10 +615,11 @@
     document.body.appendChild(backdrop);
   }
 
-  function timestampSuffix() {
-    const d = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  function nextNumberedName(baseName) {
+    const hats = loadHats();
+    let n = 1;
+    while (hats[`${baseName} ${n}`]) n++;
+    return `${baseName} ${n}`;
   }
 
   function applyImport(targetName, items) {
@@ -665,7 +666,7 @@
       } else if (choice === "replace") {
         applyImport(targetName, items);
       } else if (choice === "new") {
-        applyImport(`${targetName} (${timestampSuffix()})`, items);
+        applyImport(nextNumberedName(targetName), items);
       }
     });
   }
