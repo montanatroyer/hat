@@ -272,6 +272,35 @@
     text-align: left;
     padding: 12px 14px;
   }
+  .share-btn {
+    background: transparent;
+    color: var(--accent-dark);
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    margin-right: 6px;
+  }
+  .share-btn:hover { background: var(--accent); color: #fff; }
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    box-shadow: 0 6px 24px var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 1100;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 </style>
 </head>
 <body>
@@ -300,6 +329,7 @@
       <input type="text" id="hatNameInput" placeholder="e.g. My Favorite Restaurants Hat" />
       <button id="saveBtn">Save</button>
       <button class="secondary" id="newBtn">New</button>
+      <button class="secondary" id="shareCurrentBtn" disabled>Share</button>
     </div>
   </div>
 
@@ -309,6 +339,8 @@
     <div class="empty" id="noHats">No saved hats yet.</div>
   </div>
 </div>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function () {
@@ -325,6 +357,8 @@
   const hatNameInput = document.getElementById("hatNameInput");
   const saveBtn = document.getElementById("saveBtn");
   const newBtn = document.getElementById("newBtn");
+  const shareCurrentBtn = document.getElementById("shareCurrentBtn");
+  const toastEl = document.getElementById("toast");
   const hatListEl = document.getElementById("hatList");
   const noHatsEl = document.getElementById("noHats");
   const currentNameEl = document.getElementById("currentName");
@@ -343,6 +377,7 @@
   }
 
   function renderPapers() {
+    updateShareCurrentBtn();
     papersEl.innerHTML = "";
     if (papers.length === 0) {
       const li = document.createElement("li");
@@ -392,6 +427,12 @@
       count.className = "count";
       count.textContent = `${hats[name].length} item${hats[name].length === 1 ? "" : "s"}`;
 
+      const share = document.createElement("button");
+      share.className = "share-btn";
+      share.textContent = "Share";
+      share.title = "Copy a shareable link to this hat";
+      share.addEventListener("click", () => shareSavedHat(name));
+
       const del = document.createElement("button");
       del.className = "danger";
       del.textContent = "Delete";
@@ -410,6 +451,7 @@
 
       li.appendChild(nameSpan);
       li.appendChild(count);
+      li.appendChild(share);
       li.appendChild(del);
       hatListEl.appendChild(li);
     });
@@ -420,6 +462,7 @@
       ? `Editing: ${currentHatName}`
       : "Add your papers below, then hit Pick to draw one at random.";
     hatNameInput.value = currentHatName || "";
+    updateShareCurrentBtn();
   }
 
   function openHat(name) {
@@ -545,6 +588,7 @@
   pickBtn.addEventListener("click", pick);
   saveBtn.addEventListener("click", saveCurrent);
   newBtn.addEventListener("click", newHat);
+  shareCurrentBtn.addEventListener("click", shareCurrentHat);
   hatNameInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); saveCurrent(); }
   });
@@ -630,8 +674,55 @@
     renderHatList();
   }
 
+  function decodeShare(encoded) {
+    try {
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const obj = JSON.parse(json);
+      if (!obj || typeof obj !== "object") return null;
+      const name = typeof obj.name === "string" ? obj.name.trim() : "";
+      const items = Array.isArray(obj.items)
+        ? obj.items.map(x => (typeof x === "string" ? x.trim() : "")).filter(Boolean)
+        : [];
+      if (!name || !items.length) return null;
+      return { name, items };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function handleIncoming(targetName, items) {
+    const hats = loadHats();
+    const existing = hats[targetName];
+    if (!existing || existing.length === 0) {
+      applyImport(targetName, items);
+      return;
+    }
+    showImportModal(targetName, items, existing, choice => {
+      if (choice === "add") {
+        const merged = existing.slice();
+        items.forEach(name => {
+          if (!merged.includes(name)) merged.push(name);
+        });
+        applyImport(targetName, merged);
+      } else if (choice === "replace") {
+        applyImport(targetName, items);
+      } else if (choice === "new") {
+        applyImport(nextNumberedName(targetName), items);
+      }
+    });
+  }
+
   function importFromUrl() {
     const params = new URLSearchParams(location.search);
+
+    const shareEncoded = params.get("share");
+    if (shareEncoded) {
+      const decoded = decodeShare(shareEncoded);
+      clearUrlParams();
+      if (decoded) handleIncoming(decoded.name, decoded.items);
+      return;
+    }
+
     const source = params.get("source");
     const encoded = params.get("items");
     if (!source || !encoded) return;
@@ -648,27 +739,49 @@
         : null;
     if (!targetName) return;
 
-    const hats = loadHats();
-    const existing = hats[targetName];
+    handleIncoming(targetName, items);
+  }
 
-    if (!existing || existing.length === 0) {
-      applyImport(targetName, items);
-      return;
+  function showToast(message) {
+    toastEl.textContent = message;
+    toastEl.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove("show"), 2500);
+  }
+
+  function buildShareUrl(name, items) {
+    const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ name, items }))));
+    return `${location.origin}${location.pathname}?share=${payload}`;
+  }
+
+  function copyShareUrl(url) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url)
+        .then(() => showToast("Link copied — paste it to a friend!"))
+        .catch(() => prompt("Copy this link:", url));
+    } else {
+      prompt("Copy this link:", url);
     }
+  }
 
-    showImportModal(targetName, items, existing, choice => {
-      if (choice === "add") {
-        const merged = existing.slice();
-        items.forEach(name => {
-          if (!merged.includes(name)) merged.push(name);
-        });
-        applyImport(targetName, merged);
-      } else if (choice === "replace") {
-        applyImport(targetName, items);
-      } else if (choice === "new") {
-        applyImport(nextNumberedName(targetName), items);
-      }
-    });
+  function shareSavedHat(name) {
+    const hats = loadHats();
+    const items = hats[name];
+    if (!items || !items.length) return;
+    copyShareUrl(buildShareUrl(name, items));
+  }
+
+  function shareCurrentHat() {
+    if (!currentHatName || papers.length === 0) return;
+    copyShareUrl(buildShareUrl(currentHatName, papers));
+  }
+
+  function updateShareCurrentBtn() {
+    const ok = !!currentHatName && papers.length > 0;
+    shareCurrentBtn.disabled = !ok;
+    shareCurrentBtn.title = ok
+      ? "Copy a shareable link to this hat"
+      : "Save this hat first (and add at least one item) to share it";
   }
 
   renderPapers();
