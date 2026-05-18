@@ -223,6 +223,55 @@
     gap: 8px;
     margin-top: 8px;
   }
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal {
+    background: linear-gradient(135deg, #1a1640, #2a2660);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 10px 40px var(--shadow);
+  }
+  .modal h3 {
+    margin: 0 0 8px 0;
+    color: #fff;
+    font-size: 1.2rem;
+  }
+  .modal p {
+    margin: 0 0 16px 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .modal .modal-items {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    max-height: 140px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    color: #fffbf2;
+  }
+  .modal .modal-items div { padding: 2px 0; }
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .modal-actions button {
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+  }
 </style>
 </head>
 <body>
@@ -500,9 +549,130 @@
     if (e.key === "Enter") { e.preventDefault(); saveCurrent(); }
   });
 
+  function decodePayload(encoded) {
+    try {
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const arr = JSON.parse(json);
+      if (!Array.isArray(arr)) return null;
+      const cleaned = arr
+        .map(x => (typeof x === "string" ? x.trim() : ""))
+        .filter(Boolean);
+      return cleaned.length ? cleaned : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearUrlParams() {
+    history.replaceState(null, "", location.pathname);
+  }
+
+  function showImportModal(targetName, incoming, existing, onChoice) {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
+
+    const modal = document.createElement("div");
+    modal.className = "modal";
+
+    const h = document.createElement("h3");
+    h.textContent = `Add ${incoming.length} item${incoming.length === 1 ? "" : "s"} to "${targetName}"?`;
+    modal.appendChild(h);
+
+    const p = document.createElement("p");
+    p.textContent = `This hat already has ${existing.length} item${existing.length === 1 ? "" : "s"}. What would you like to do?`;
+    modal.appendChild(p);
+
+    const items = document.createElement("div");
+    items.className = "modal-items";
+    incoming.forEach(name => {
+      const row = document.createElement("div");
+      row.textContent = "• " + name;
+      items.appendChild(row);
+    });
+    modal.appendChild(items);
+
+    const actions = document.createElement("div");
+    actions.className = "modal-actions";
+
+    function btn(label, choice, cls) {
+      const b = document.createElement("button");
+      b.textContent = label;
+      if (cls) b.className = cls;
+      b.addEventListener("click", () => {
+        document.body.removeChild(backdrop);
+        onChoice(choice);
+      });
+      return b;
+    }
+
+    actions.appendChild(btn("Add to existing hat (dedup)", "add"));
+    actions.appendChild(btn("Replace the hat", "replace", "secondary"));
+    actions.appendChild(btn("Save as a new hat", "new", "secondary"));
+
+    modal.appendChild(actions);
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+  }
+
+  function timestampSuffix() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function applyImport(targetName, items) {
+    const hats = loadHats();
+    hats[targetName] = items.slice();
+    saveHats(hats);
+    openHat(targetName);
+    renderHatList();
+  }
+
+  function importFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const source = params.get("source");
+    const encoded = params.get("items");
+    if (!source || !encoded) return;
+
+    const items = decodePayload(encoded);
+    clearUrlParams();
+    if (!items) return;
+
+    const targetName =
+      source === "cuisine"
+        ? "Cuisine at random"
+        : source === "activity"
+        ? "Activity at random"
+        : null;
+    if (!targetName) return;
+
+    const hats = loadHats();
+    const existing = hats[targetName];
+
+    if (!existing || existing.length === 0) {
+      applyImport(targetName, items);
+      return;
+    }
+
+    showImportModal(targetName, items, existing, choice => {
+      if (choice === "add") {
+        const merged = existing.slice();
+        items.forEach(name => {
+          if (!merged.includes(name)) merged.push(name);
+        });
+        applyImport(targetName, merged);
+      } else if (choice === "replace") {
+        applyImport(targetName, items);
+      } else if (choice === "new") {
+        applyImport(`${targetName} (${timestampSuffix()})`, items);
+      }
+    });
+  }
+
   renderPapers();
   renderHatList();
   updateCurrentName();
+  importFromUrl();
 })();
 </script>
 </body>
