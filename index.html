@@ -138,6 +138,18 @@
     padding: 0 4px;
   }
   .papers li .x:hover { color: var(--danger); background: none; }
+  .papers li .paper-text { cursor: text; }
+  .papers li input.paper-edit {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    min-width: 80px;
+  }
   .empty,
   .papers li.empty {
     color: #ffffff;
@@ -389,18 +401,60 @@
     }
     papers.forEach((p, i) => {
       const li = document.createElement("li");
-      li.textContent = p;
+      const text = document.createElement("span");
+      text.className = "paper-text";
+      text.textContent = p;
+      text.title = "Click to edit";
+      text.addEventListener("click", () => startEditPaper(li, text, i));
+
       const x = document.createElement("button");
       x.className = "x";
       x.textContent = "×";
       x.title = "Remove";
-      x.addEventListener("click", () => {
+      x.addEventListener("click", (e) => {
+        e.stopPropagation();
         papers.splice(i, 1);
         renderPapers();
       });
+      li.appendChild(text);
       li.appendChild(x);
       papersEl.appendChild(li);
     });
+  }
+
+  function startEditPaper(li, textSpan, index) {
+    if (shuffling) return;
+    const oldText = papers[index];
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "paper-edit";
+    input.value = oldText;
+
+    let done = false;
+    function commit() {
+      if (done) return;
+      done = true;
+      const newText = input.value.trim();
+      if (newText && newText !== oldText) {
+        papers[index] = newText;
+      }
+      renderPapers();
+    }
+    function cancel() {
+      if (done) return;
+      done = true;
+      renderPapers();
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); commit(); }
+      else if (e.key === "Escape") { e.preventDefault(); cancel(); }
+    });
+    input.addEventListener("blur", commit);
+
+    li.replaceChild(input, textSpan);
+    input.focus();
+    input.select();
   }
 
   function renderHatList() {
