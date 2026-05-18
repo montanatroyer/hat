@@ -329,7 +329,6 @@
       <input type="text" id="hatNameInput" placeholder="e.g. My Favorite Restaurants Hat" />
       <button id="saveBtn">Save</button>
       <button class="secondary" id="newBtn">New</button>
-      <button class="secondary" id="shareCurrentBtn" disabled>Share</button>
     </div>
   </div>
 
@@ -357,7 +356,6 @@
   const hatNameInput = document.getElementById("hatNameInput");
   const saveBtn = document.getElementById("saveBtn");
   const newBtn = document.getElementById("newBtn");
-  const shareCurrentBtn = document.getElementById("shareCurrentBtn");
   const toastEl = document.getElementById("toast");
   const hatListEl = document.getElementById("hatList");
   const noHatsEl = document.getElementById("noHats");
@@ -377,7 +375,6 @@
   }
 
   function renderPapers() {
-    updateShareCurrentBtn();
     papersEl.innerHTML = "";
     if (papers.length === 0) {
       const li = document.createElement("li");
@@ -462,7 +459,6 @@
       ? `Editing: ${currentHatName}`
       : "Add your papers below, then hit Pick to draw one at random.";
     hatNameInput.value = currentHatName || "";
-    updateShareCurrentBtn();
   }
 
   function openHat(name) {
@@ -588,7 +584,6 @@
   pickBtn.addEventListener("click", pick);
   saveBtn.addEventListener("click", saveCurrent);
   newBtn.addEventListener("click", newHat);
-  shareCurrentBtn.addEventListener("click", shareCurrentHat);
   hatNameInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); saveCurrent(); }
   });
@@ -771,18 +766,6 @@
     copyShareUrl(buildShareUrl(name, items));
   }
 
-  function shareCurrentHat() {
-    if (!currentHatName || papers.length === 0) return;
-    copyShareUrl(buildShareUrl(currentHatName, papers));
-  }
-
-  function updateShareCurrentBtn() {
-    const ok = !!currentHatName && papers.length > 0;
-    shareCurrentBtn.disabled = !ok;
-    shareCurrentBtn.title = ok
-      ? "Copy a shareable link to this hat"
-      : "Save this hat first (and add at least one item) to share it";
-  }
 
   renderPapers();
   renderHatList();
