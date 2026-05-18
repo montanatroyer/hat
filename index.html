@@ -645,8 +645,8 @@
     }
 
     const targetNameTitle = targetName.replace(/\b\w/g, c => c.toUpperCase());
-    actions.appendChild(btn(`Add To Existing ${targetNameTitle} Hat`, "add", "secondary"));
-    actions.appendChild(btn(`Replace Existing ${targetNameTitle} Hat With Just The New Items`, "replace", "secondary"));
+    actions.appendChild(btn(`Add To Existing '${targetNameTitle}' Hat`, "add", "secondary"));
+    actions.appendChild(btn(`Replace Existing '${targetNameTitle}' Hat With Just The New Items`, "replace", "secondary"));
     actions.appendChild(btn("Save These As A Brand New Hat", "new", "secondary"));
 
     modal.appendChild(actions);
