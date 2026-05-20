@@ -33,6 +33,7 @@
   header {
     text-align: center;
     margin-bottom: 24px;
+    position: relative;
   }
   header h1 {
     font-size: 2.4rem;
@@ -40,6 +41,16 @@
     letter-spacing: 0.04em;
     color: #fff;
   }
+  header .home-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--muted);
+    text-decoration: underline;
+    text-transform: lowercase;
+    font-size: 0.95rem;
+  }
+  header .home-link:hover { color: #fff; }
   header p {
     margin: 4px 0 0;
     color: var(--muted);
@@ -313,6 +324,7 @@
 <body>
 <div class="app">
   <header>
+    <a class="home-link" href="https://idkwhatdoyouwanna.vercel.app">← home</a>
     <h1>🎩 Hat</h1>
     <p>Drop your papers in. Pick one at random.</p>
   </header>
